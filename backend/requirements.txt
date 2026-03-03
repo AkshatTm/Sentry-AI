@@ -1,7 +1,19 @@
-# SentryOS Backend — Python dependencies
-# Phase 1: API server + WebSocket transport only
-# Phase 2 additions (not yet): mediapipe, opencv-python, numpy
+# ============================================================================
+# SentryOS Backend — Python Dependencies
+# ============================================================================
+# Phase 1: AI Sensory Engine (Camera + Face Detection + Color Extraction)
+#
+# Install:  pip install -r requirements.txt
+# Activate: Ensure your venv is active before installing.
+# ============================================================================
 
-fastapi
-uvicorn[standard]
-websockets
+# --- Core Framework & Networking ---
+fastapi>=0.100.0          # ASGI web framework — WebSocket + REST endpoints
+uvicorn[standard]>=0.23.0 # ASGI server with lifespan support
+websockets>=11.0.3        # Low-level WS protocol (used by uvicorn internally)
+
+# --- Computer Vision & AI Models ---
+mediapipe>=0.10.0         # Google MediaPipe — CPU-optimized face detection
+opencv-python>=4.8.0      # Video capture + frame manipulation (ROI cropping)
+scikit-learn>=1.3.0       # MiniBatchKMeans for dominant color clustering
+numpy>=1.24.0             # Array ops bridging OpenCV ↔ scikit-learn

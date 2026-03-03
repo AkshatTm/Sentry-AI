@@ -1,4 +1,11 @@
-/* SentryOS Global Styles — Phase 1 baseline */
+/* SentryOS Global Styles — Phase 3: Kinetic UI & Chameleon Engine */
+
+/* ── Tailwind directives ──────────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -7,17 +14,37 @@
   padding: 0;
 }
 
+/* ── Design Token Registry ────────────────────────────────────────────────── */
 :root {
+  /* ── Static Palette (never mutated at runtime) ── */
   --color-bg: #0d0d0d;
   --color-surface: #1a1a2e;
+  --color-surface-raised: #16213e;
   --color-accent: #00d4ff;
   --color-text: #e0e0e0;
+  --color-text-secondary: #a0aec0;
   --color-muted: #6b7280;
   --color-danger: #ef4444;
   --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  /* ── Chameleon Dynamic Variables (mutated at runtime by ChameleonWrapper) ── */
+  /* Initial value mirrors --color-accent so the UI is never blank on load.    */
+  --theme-primary: #00d4ff;
+
+  /* Derived glow and border tokens — auto-recompute whenever --theme-primary  */
+  /* changes, because CSS color-mix() is re-evaluated on every layout paint.   */
+  --theme-glow: color-mix(in srgb, var(--theme-primary) 28%, transparent);
+  --theme-border: color-mix(in srgb, var(--theme-primary) 45%, transparent);
+
+  /* ── Typography ── */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -27,4 +54,26 @@ body {
 a {
   color: var(--color-accent);
   text-decoration: none;
+}
+
+/* ── Utility: Scrollbar Styling (premium enterprise feel) ────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-raised);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-border);
+}
+
+/* ── Utility: Selection Highlight ───────────────────────────────────────────*/
+::selection {
+  background-color: var(--theme-glow);
+  color: var(--color-text);
 }
