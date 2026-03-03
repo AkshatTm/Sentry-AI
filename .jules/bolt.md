@@ -1,0 +1,3 @@
+## 2024-05-18 - [Optimization learning]
+**Learning:** For high-frequency data streams like the 10Hz WebSocket in SentryOS, components deep in the tree that only care about infrequently changing data (like a 1Hz color update, or stable connection states) will still re-render on *every single tick* if their parent re-renders due to the websocket payload's timestamp updating.
+**Action:** Use `React.memo()` generously on child components that receive primitive props derived from high-frequency hooks. The `useMemo` on the hook return value itself does *not* prevent consumers from re-rendering when the hook triggers a state update internally.

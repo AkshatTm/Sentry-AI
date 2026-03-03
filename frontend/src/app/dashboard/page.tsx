@@ -26,6 +26,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -197,7 +198,7 @@ interface SecurityTopBarProps {
   requestPairing: () => Promise<void>;
 }
 
-function SecurityTopBar({
+const SecurityTopBar = memo(function SecurityTopBar({
   securityState, isConnected, faceCount, isDisconnected,
   deviceName, dominantColor, requestPairing,
 }: SecurityTopBarProps) {
@@ -293,9 +294,9 @@ function SecurityTopBar({
       </div>
     </header>
   );
-}
+});
 
-function MetricCard({ label, value, sub, delta, trend, icon: Icon, note }: (typeof METRICS)[number]) {
+const MetricCard = memo(function MetricCard({ label, value, sub, delta, trend, icon: Icon, note }: (typeof METRICS)[number]) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Activity;
   const trendColor = trend === "up" ? "var(--color-success)" : trend === "down" ? "var(--color-warning)" : "var(--color-muted)";
   return (
@@ -326,7 +327,7 @@ function MetricCard({ label, value, sub, delta, trend, icon: Icon, note }: (type
       </div>
     </div>
   );
-}
+});
 
 const LEVEL_COLORS: Record<string, string> = {
   INFO:  "var(--color-success)",
@@ -334,7 +335,7 @@ const LEVEL_COLORS: Record<string, string> = {
   ERROR: "var(--color-danger)",
 };
 
-function TerminalPanel({ isConnected }: { isConnected: boolean }) {
+const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected: boolean }) {
   return (
     <div className="flex flex-col rounded-xl overflow-hidden h-full" style={{ background: "#080b10", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="flex items-center gap-2 px-4 py-2.5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
@@ -366,14 +367,14 @@ function TerminalPanel({ isConnected }: { isConnected: boolean }) {
       </div>
     </div>
   );
-}
+});
 
 const TOKEN_COLORS: Record<string, string> = {
   comment: "#6b7280", keyword: "#c792ea", fn: "#82aaff",
   type: "#ffcb6b", str: "#c3e88d", num: "#f78c6c", plain: "#e0e0e0",
 };
 
-function CodePanel() {
+const CodePanel = memo(function CodePanel() {
   return (
     <div className="flex flex-col rounded-xl overflow-hidden h-full" style={{ background: "#080b10", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="flex items-center gap-2 px-4 py-2.5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
@@ -408,7 +409,7 @@ function CodePanel() {
       </div>
     </div>
   );
-}
+});
 
 const SEVERITY_STYLE: Record<string, { bg: string; color: string }> = {
   CRITICAL: { bg: "rgba(239,68,68,0.15)",  color: "var(--color-danger)"  },
@@ -417,7 +418,7 @@ const SEVERITY_STYLE: Record<string, { bg: string; color: string }> = {
   INFO:     { bg: "rgba(107,114,128,0.15)",color: "var(--color-muted)"   },
 };
 
-function SecurityEventsTable() {
+const SecurityEventsTable = memo(function SecurityEventsTable() {
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--theme-border)" }}>
       <div className="flex items-center gap-2 px-5 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
@@ -473,7 +474,7 @@ function SecurityEventsTable() {
       </div>
     </div>
   );
-}
+});
 
 const SERVER_NODES = [
   { name: "sentry-eu-01",   region: "Frankfurt",  health: 100, latency: "18ms" },
@@ -482,7 +483,7 @@ const SERVER_NODES = [
   { name: "sentry-proc-03", region: "AI Node",    health: 72,  latency: "8ms"  },
 ];
 
-function ServerHealthRow() {
+const ServerHealthRow = memo(function ServerHealthRow() {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl px-5 py-3"
       style={{ background: "var(--color-surface)", border: "1px solid var(--theme-border)" }}>
@@ -509,14 +510,14 @@ function ServerHealthRow() {
       </div>
     </div>
   );
-}
+});
 
 interface DashboardContentProps {
   isConnected: boolean;
   securityState: SecurityState;
 }
 
-function DashboardContent({ isConnected, securityState }: DashboardContentProps) {
+const DashboardContent = memo(function DashboardContent({ isConnected, securityState }: DashboardContentProps) {
   return (
     <div className="p-6 space-y-5 min-h-screen">
       <div className="flex items-center justify-between">
@@ -546,12 +547,14 @@ function DashboardContent({ isConnected, securityState }: DashboardContentProps)
       <div className="h-4" />
     </div>
   );
-}
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard Inner — rendered inside PresentationModeProvider
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ⚡ Bolt: Wrapped static/heavy components in React.memo() to prevent
+// unnecessary re-renders when the 10Hz WebSocket pushes new timestamp data.
 function DashboardInner() {
   // Presentation override (null = sensors in control)
   const { overrideState, isOverrideActive } = usePresentationMode();
