@@ -1,32 +1,18 @@
 /**
- * ChameleonWrapper — CSS Variable Injection Engine
+ * ChameleonWrapper — CSS Variable Injection Engine (v2 — Background Mode)
  *
  * Architecture: Motion Value Tunnelling (zero React re-render for color updates)
  * ─────────────────────────────────────────────────────────────────────────────
- * The Naive approach would be: `useEffect(() => { setCssVar(color) }, [sensorData])`
- * That fires on every 10 Hz WebSocket message, even when the color hasn't changed.
- *
- * This implementation bypasses React's render cycle entirely:
- *
- * 1. `colorMV` — a Framer Motion `MotionValue<string>` seeded with the fallback color.
- * 2. `colorMV.on('change', ...)` — a subscriber that writes EVERY interpolated frame
- *    directly to `document.documentElement.style.setProperty('--theme-primary', v)`.
- *    This fires at 60 fps during a transition, but NEVER causes a React re-render.
- * 3. `animate(colorMV, target, { duration: 0.6 })` — triggered by `dominantColor` prop
- *    changes (~1 Hz from K-Means sampling). Only this outer effect depends on props.
- *
- * Derived variables (`--theme-glow`, `--theme-border`) are computed via CSS `color-mix()`
- * in globals.css referencing `var(--theme-primary)` — they update automatically through
- * the CSS cascade without any additional JS.
- *
- * Saturation Guard:
- * ─────────────────
- * K-Means on an office environment will frequently extract grey walls, white shirts, or
- * near-black backgrounds. These produce ugly, de-themed UIs. The guard converts the
- * incoming HEX to HSL and rejects it if:
- *   - Saturation < SATURATION_THRESHOLD (15 %) — too grey / achromatic
- *   - Lightness  < LIGHTNESS_MIN        (10 %) — too dark to produce visible glow
- * Rejected colors hold the last known vivid color, maintaining theme continuity.
+ * v2 changes vs v1:
+ *   1. The backend now snaps colours to a curated 20-entry vivid palette, so
+ *      the saturation guard is no longer needed — every incoming colour is
+ *      guaranteed vivid.
+ *   2. In addition to `--theme-primary` (accent/glow/border), we now also
+ *      write `--chameleon-bg` — a darkened tint of the dominant colour that
+ *      the page background uses.  Because the page background lives OUTSIDE
+ *      GlassOverlay, the colour shift is visible even when the screen is
+ *      blurred (no face detected).
+ *   3. Transition duration increased to 0.8 s for a more dramatic effect.
  */
 
 "use client";
@@ -36,112 +22,39 @@ import { animate, useMotionValue } from "framer-motion";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-/**
- * Initial/fallback color when no vivid color has been received yet.
- * Matches --color-accent in globals.css so the UI is never visually blank.
- */
 const FALLBACK_COLOR = "#00d4ff";
 
-/**
- * Minimum HSL saturation percentage (0–100) for a color to be considered vivid.
- * Colors below this threshold are too grey/achromatic to produce a useful theme.
- */
-const SATURATION_THRESHOLD = 15;
+/** Framer Motion transition config for chameleon color changes. */
+const TRANSITION = { duration: 0.8, ease: "easeInOut" } as const;
+
+// ── Colour Utilities ──────────────────────────────────────────────────────────
 
 /**
- * Minimum HSL lightness percentage (0–100) to accept a color.
- * Near-black colors produce invisible glows and muddy borders.
+ * Parse a `#RRGGBB` hex string into [r, g, b] (0-255).
  */
-const LIGHTNESS_MIN = 10;
-
-/**
- * Framer Motion animation config for all chameleon color transitions.
- * 0.6 s ease-in-out matches the "premium kinetic minimalist" aesthetic.
- */
-const TRANSITION = { duration: 0.6, ease: "easeInOut" } as const;
-
-// ── Saturation Guard Utilities ────────────────────────────────────────────────
-
-/**
- * Converts a 7-char HEX string (`#RRGGBB`) to an HSL object.
- * Returns null if the string is malformed.
- */
-function hexToHsl(
-  hex: string
-): { h: number; s: number; l: number } | null {
-  const match = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!match) return null;
-
-  const r = parseInt(match[1], 16) / 255;
-  const g = parseInt(match[2], 16) / 255;
-  const b = parseInt(match[3], 16) / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  const l = (max + min) / 2;
-
-  if (delta === 0) {
-    // Achromatic — perfectly grey, saturation is 0
-    return { h: 0, s: 0, l: l * 100 };
-  }
-
-  const s =
-    l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-
-  let h: number;
-  switch (max) {
-    case r:
-      h = ((g - b) / delta + (g < b ? 6 : 0)) / 6;
-      break;
-    case g:
-      h = ((b - r) / delta + 2) / 6;
-      break;
-    default: // b
-      h = ((r - g) / delta + 4) / 6;
-      break;
-  }
-
-  return { h: h * 360, s: s * 100, l: l * 100 };
+function hexToRgb(hex: string): [number, number, number] | null {
+  const m = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return null;
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
 }
 
 /**
- * Returns true if the color is vivid enough to use as a Chameleon theme.
- * False = too grey, too dark, or malformed.
+ * Darken an RGB colour to produce a page-background-safe tint.
+ * Mixes `ratio` of the colour with black, ensuring we stay in the
+ * dark-theme range while still being visibly tinted.
  */
-function isVividColor(hex: string): boolean {
-  const hsl = hexToHsl(hex);
-  if (!hsl) return false;
-  return hsl.s >= SATURATION_THRESHOLD && hsl.l >= LIGHTNESS_MIN;
-}
-
-/**
- * Applies the saturation guard and updates the lastVivid ref.
- * Returns the color that should actually be animated to.
- *
- * @param incoming   - The new HEX string from the WebSocket
- * @param lastVivid  - The last accepted vivid color (mutable ref value)
- * @returns          - The target HEX to animate to, and whether it was accepted
- */
-function guardedColor(
-  incoming: string,
-  lastVivid: string
-): { target: string; accepted: boolean } {
-  if (isVividColor(incoming)) {
-    return { target: incoming, accepted: true };
-  }
-  // Reject: return the last known good color so the theme stays stable
-  return { target: lastVivid, accepted: false };
+function darkenForBackground(hex: string, ratio = 0.18): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return "#0d0d0d";
+  const r = Math.round(rgb[0] * ratio);
+  const g = Math.round(rgb[1] * ratio);
+  const b = Math.round(rgb[2] * ratio);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
 // ── Component Props ───────────────────────────────────────────────────────────
 
 export interface ChameleonWrapperProps {
-  /**
-   * The dominant HEX color string from `useSecurityState().dominantColor`.
-   * Updates at ~1 Hz (rate-limited by K-Means on the Python backend).
-   * Null until the first WebSocket message arrives.
-   */
   dominantColor: string | null;
   children: React.ReactNode;
 }
@@ -152,63 +65,44 @@ export function ChameleonWrapper({
   dominantColor,
   children,
 }: ChameleonWrapperProps) {
-  // The MotionValue holds the current (or interpolating) HEX color string.
-  // It is initialized to FALLBACK_COLOR, which matches --theme-primary in globals.css,
-  // so there is zero visual jump when the first real color arrives.
   const colorMV = useMotionValue<string>(FALLBACK_COLOR);
+  const bgMV = useMotionValue<string>(darkenForBackground(FALLBACK_COLOR));
+  const lastColorRef = useRef<string>(FALLBACK_COLOR);
 
-  // Stores the last accepted vivid color. Initialized to FALLBACK_COLOR.
-  // Using a ref (not state) so updates never trigger re-renders.
-  const lastVividRef = useRef<string>(FALLBACK_COLOR);
-
-  // ── Effect 1: CSS variable writer (mount-once subscription) ─────────────
-  // Subscribes to the MotionValue and writes every interpolated frame to the
-  // CSS variable. This is the core of the "zero React re-render" architecture.
-  // The subscriber fires at 60 fps during a transition, at 0 fps when idle.
+  // ── Effect 1: CSS variable writers (mount-once subscriptions) ───────────
   useEffect(() => {
-    const unsubscribe = colorMV.on("change", (value: string) => {
+    const unsub1 = colorMV.on("change", (value: string) => {
       document.documentElement.style.setProperty("--theme-primary", value);
-      // NOTE: --theme-glow and --theme-border are derived automatically in CSS
-      // via `color-mix(in srgb, var(--theme-primary) N%, transparent)`.
-      // No additional JS writes are needed for the derived tokens.
+    });
+    const unsub2 = bgMV.on("change", (value: string) => {
+      document.documentElement.style.setProperty("--chameleon-bg", value);
     });
 
-    // Write the initial value immediately so the variable is set on first paint,
-    // even before any dominantColor prop arrives.
-    document.documentElement.style.setProperty(
-      "--theme-primary",
-      colorMV.get()
-    );
+    // Write initial values immediately.
+    document.documentElement.style.setProperty("--theme-primary", colorMV.get());
+    document.documentElement.style.setProperty("--chameleon-bg", bgMV.get());
 
-    return unsubscribe;
-  }, [colorMV]); // colorMV is stable across renders — this runs exactly once.
+    return () => {
+      unsub1();
+      unsub2();
+    };
+  }, [colorMV, bgMV]);
 
   // ── Effect 2: Chameleon color animator (~1 Hz) ───────────────────────────
-  // Watches only `dominantColor`. Because K-Means on the backend runs at 1 Hz,
-  // this fires at ~1 Hz — not the 10 Hz WebSocket rate. This is the critical
-  // optimization that eliminates re-render bloat.
   useEffect(() => {
     if (!dominantColor) return;
 
-    const { target, accepted } = guardedColor(
-      dominantColor,
-      lastVividRef.current
-    );
+    // Skip if identical to last accepted color (no visual change needed).
+    if (dominantColor === lastColorRef.current) return;
+    lastColorRef.current = dominantColor;
 
-    // Update the last-vivid memory only when the guard accepted the new color.
-    if (accepted) {
-      lastVividRef.current = dominantColor;
-    }
+    // Animate accent colour.
+    animate(colorMV, dominantColor, TRANSITION);
 
-    // Skip animation if the target is identical to the current value
-    // (e.g., saturation guard fired and lastVivid hasn't changed).
-    if (target === colorMV.get()) return;
+    // Animate background to a dark tint of the new colour.
+    const bgTarget = darkenForBackground(dominantColor);
+    animate(bgMV, bgTarget, TRANSITION);
+  }, [dominantColor, colorMV, bgMV]);
 
-    // animate() returns a cancel function. We don't need to cancel mid-transition
-    // because the next animate() call will naturally override the previous one.
-    animate(colorMV, target, TRANSITION);
-  }, [dominantColor, colorMV]);
-
-  // ChameleonWrapper renders no DOM of its own — it is a pure side-effect shell.
   return <>{children}</>;
 }

@@ -32,6 +32,10 @@
   /* Initial value mirrors --color-accent so the UI is never blank on load.    */
   --theme-primary: #00d4ff;
 
+  /* Background tint — a darkened version of --theme-primary set by JS.        */
+  /* Visible even when GlassOverlay blurs the content (lives outside blur).    */
+  --chameleon-bg: #002933;
+
   /* Derived glow and border tokens — auto-recompute whenever --theme-primary  */
   /* changes, because CSS color-mix() is re-evaluated on every layout paint.   */
   --theme-glow: color-mix(in srgb, var(--theme-primary) 28%, transparent);
@@ -46,9 +50,10 @@
 
 /* ── Base Styles ──────────────────────────────────────────────────────────── */
 body {
-  background-color: var(--color-bg);
+  background-color: var(--chameleon-bg, var(--color-bg));
   color: var(--color-text);
   min-height: 100vh;
+  transition: background-color 0.8s ease-in-out;
 }
 
 a {

@@ -156,7 +156,7 @@ export default function ChameleonTestPage() {
     <ChameleonWrapper dominantColor={activeColor}>
       <div
         className="min-h-screen p-6 space-y-6"
-        style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
+        style={{ background: "var(--chameleon-bg, var(--color-bg))", color: "var(--color-text)" }}
       >
         {/* ── Header ── */}
         <div className="flex items-center justify-between">

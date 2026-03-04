@@ -42,8 +42,14 @@ export interface ProximityState {
    * Trigger BLE device pairing via the browser picker.
    * **Must** be called from a user gesture (click / tap).
    * No-op if Bluetooth is unsupported.
+   *
+   * @param namePrefix — Optional prefix to filter devices by name
+   *   (e.g. "boAt" for boAt earbuds). If provided, only devices whose
+   *   advertised name starts with this string appear in the picker.
+   *   If no device matches, the picker will show an error — the user
+   *   can retry without a prefix by leaving the field empty.
    */
-  requestPairing: () => Promise<void>;
+  requestPairing: (namePrefix?: string) => Promise<void>;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -226,7 +232,7 @@ export function useProximityTether(): ProximityState {
 
   // ── Public API: requestPairing ──────────────────────────────────────
 
-  const requestPairing = useCallback(async () => {
+  const requestPairing = useCallback(async (namePrefix?: string) => {
     // Runtime support check (SSR-safe)
     if (typeof navigator === "undefined" || !("bluetooth" in navigator)) {
       setStatusMessage("Bluetooth unsupported in this browser.");
@@ -241,14 +247,26 @@ export function useProximityTether(): ProximityState {
     setIsDisconnected(true); // fail-closed during pairing flow
 
     try {
-      setStatusMessage("Requesting BLE device…");
+      const trimmed = namePrefix?.trim();
+      setStatusMessage(
+        trimmed
+          ? `Requesting BLE device with name starting "${trimmed}"…`
+          : "Requesting BLE device (all devices)…"
+      );
 
-      const device = await navigator.bluetooth.requestDevice({
-        // Accept any BLE device (phone, watch, earbuds, badge, etc.)
-        acceptAllDevices: true,
-        // Request battery_service so GATT fallback has something to connect to
-        optionalServices: ["battery_service"],
-      });
+      // When a namePrefix is provided, use filters so the browser picker
+      // only lists matching devices (much easier to find your earbuds).
+      const requestOptions: RequestDeviceOptions = trimmed
+        ? {
+            filters: [{ namePrefix: trimmed }],
+            optionalServices: ["battery_service"],
+          }
+        : {
+            acceptAllDevices: true,
+            optionalServices: ["battery_service"],
+          };
+
+      const device = await navigator.bluetooth.requestDevice(requestOptions);
 
       if (!isMountedRef.current) return;
 

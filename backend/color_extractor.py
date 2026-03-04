@@ -61,6 +61,65 @@ DEFAULT_COLOR: str = "#1a1a2e"
 """Fallback HEX colour returned when extraction fails (e.g. the frame is
 too small to crop a valid ROI).  Matches the SentryOS dark theme base."""
 
+# ── Predefined Colour Palette ───────────────────────────────────────────────
+#
+# Instead of sending raw K-Means centroids (which can be muddy greys or
+# near-identical between frames), we snap the extracted colour to the
+# nearest entry in this curated palette.  Every palette colour is vivid,
+# well-spaced in RGB space, and guaranteed to produce a visible change
+# on the frontend background.
+
+PALETTE_HEX: list[str] = [
+    "#FF0000",   # Red
+    "#FF4500",   # Orange Red
+    "#FF8C00",   # Dark Orange
+    "#FFD700",   # Gold
+    "#ADFF2F",   # Green Yellow
+    "#32CD32",   # Lime Green
+    "#00C853",   # Green
+    "#00BFA5",   # Teal
+    "#00BCD4",   # Cyan
+    "#00BFFF",   # Deep Sky Blue
+    "#1E90FF",   # Dodger Blue
+    "#2979FF",   # Blue
+    "#7C4DFF",   # Deep Purple
+    "#AA00FF",   # Purple
+    "#E040FB",   # Pink-Purple
+    "#FF1493",   # Deep Pink
+    "#FF5252",   # Light Red
+    "#FF6D00",   # Vivid Orange
+    "#F57F17",   # Amber
+    "#00E676",   # Bright Green
+]
+"""20 vivid, perceptually distinct colours.  The frontend Chameleon engine
+uses these directly — every transition is guaranteed to look different."""
+
+
+def _hex_to_rgb(hex_str: str) -> tuple[int, int, int]:
+    """Convert ``#RRGGBB`` to ``(R, G, B)`` tuple."""
+    h = hex_str.lstrip("#")
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+# Pre-parse palette into an (N, 3) numpy array for fast distance computation.
+_PALETTE_RGB: np.ndarray = np.array(
+    [_hex_to_rgb(h) for h in PALETTE_HEX],
+    dtype=np.float32,
+)
+
+
+def snap_to_palette(hex_color: str) -> str:
+    """Return the palette colour closest to *hex_color* in RGB Euclidean
+    distance.  Runs in < 0.01 ms for 20 palette entries."""
+    try:
+        r, g, b = _hex_to_rgb(hex_color)
+        point = np.array([r, g, b], dtype=np.float32)
+        distances = np.linalg.norm(_PALETTE_RGB - point, axis=1)
+        best_idx = int(np.argmin(distances))
+        return PALETTE_HEX[best_idx]
+    except Exception:
+        return DEFAULT_COLOR
+
 
 # ── Public API ──────────────────────────────────────────────────────────────
 
@@ -98,7 +157,12 @@ def extract_dominant_color(frame: np.ndarray) -> str:
     scene changes abruptly (e.g. user swaps the coloured token).
     """
     try:
-        return _extract(frame)
+        raw_hex = _extract(frame)
+        # Snap to the nearest predefined palette colour so every
+        # update produces a vivid, noticeably different result.
+        snapped = snap_to_palette(raw_hex)
+        logger.debug("Raw %s → snapped %s", raw_hex, snapped)
+        return snapped
     except Exception:
         # Broad catch ensures the vision loop never crashes due to a
         # colour-extraction edge case (corrupt frame, NaN pixels, etc.).

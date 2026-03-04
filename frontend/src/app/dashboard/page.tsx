@@ -570,7 +570,7 @@ function DashboardInner() {
 
   return (
     <ChameleonWrapper dominantColor={dominantColor}>
-      <div className="relative min-h-screen" style={{ background: "var(--color-bg)" }}>
+      <div className="relative min-h-screen" style={{ background: "var(--chameleon-bg, var(--color-bg))", transition: "background-color 0.8s ease-in-out" }}>
 
         {/* ── Always-visible security header (z-40, outside blur zone) ── */}
         <SecurityTopBar

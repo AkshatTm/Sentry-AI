@@ -386,15 +386,18 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide passphrase" : "Show passphrase"}
                   style={{
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    padding: 0,
+                    padding: "2px",
                     display: "flex",
                     color: "var(--color-muted)",
+                    borderRadius: "4px",
+                    outline: "none",
                   }}
-                  tabIndex={-1}
+                  className="focus-visible:ring-1 focus-visible:ring-[var(--theme-primary)]"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
