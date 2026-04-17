@@ -13,6 +13,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import type { SecurityState } from "@/hooks/useSecurityState";
@@ -57,7 +58,10 @@ export interface GlassOverlayProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function GlassOverlay({
+// ⚡ Bolt Performance Optimization:
+// Memoized GlassOverlay to prevent re-renders on high-frequency websocket ticks.
+// Note: Parent components must pass stable `children` references for this optimization to be effective.
+export const GlassOverlay = memo(function GlassOverlay({
   securityState,
   children,
   className = "",
@@ -76,4 +80,4 @@ export function GlassOverlay({
       {children}
     </motion.div>
   );
-}
+});

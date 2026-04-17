@@ -12,7 +12,7 @@
  */
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 
 interface TiltCardProps {
@@ -23,7 +23,10 @@ interface TiltCardProps {
   scale?: number;
 }
 
-export function TiltCard({
+// ⚡ Bolt Performance Optimization:
+// Memoized TiltCard to prevent re-renders on high-frequency websocket ticks.
+// Note: Parent components must pass stable `children` references for this optimization to be effective.
+export const TiltCard = memo(function TiltCard({
   children,
   className = "",
   style,
@@ -113,4 +116,4 @@ export function TiltCard({
       {children}
     </motion.div>
   );
-}
+});

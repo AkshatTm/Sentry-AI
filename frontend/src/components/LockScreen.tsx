@@ -17,6 +17,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { LockKeyhole, Bluetooth, BluetoothOff, Signal } from "lucide-react";
 
@@ -81,7 +82,9 @@ function rssiToProximityLabel(rssi: number, distance: number | null): string {
 }
 
 /** Renders 5 signal bars based on RSSI strength. */
-function SignalBars({ rssi }: { rssi: number | null }) {
+// ⚡ Bolt Performance Optimization:
+// Memoized SignalBars to prevent re-renders when other LockScreen props change.
+const SignalBars = memo(function SignalBars({ rssi }: { rssi: number | null }) {
   const thresholds = [-55, -65, -70, -75, -85];
   const activeBars = rssi === null
     ? 0
@@ -102,11 +105,13 @@ function SignalBars({ rssi }: { rssi: number | null }) {
       ))}
     </div>
   );
-}
+});
 
 // ── RSSI Floating Strip (outside card, bottom of viewport) ────────────────────
 
-function RssiStrip({
+// ⚡ Bolt Performance Optimization:
+// Memoized RssiStrip to prevent re-renders when other LockScreen props change.
+const RssiStrip = memo(function RssiStrip({
   deviceName,
   rssi,
   distance,
@@ -175,11 +180,13 @@ function RssiStrip({
       </div>
     </motion.div>
   );
-}
+});
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function LockScreen({
+// ⚡ Bolt Performance Optimization:
+// Memoized LockScreen to prevent re-renders on high-frequency websocket ticks.
+export const LockScreen = memo(function LockScreen({
   deviceName,
   rssi,
   distance,
@@ -374,4 +381,4 @@ export function LockScreen({
       />
     </motion.div>
   );
-}
+});

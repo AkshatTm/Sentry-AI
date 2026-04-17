@@ -17,7 +17,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import { animate, useMotionValue } from "framer-motion";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -61,7 +61,10 @@ export interface ChameleonWrapperProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function ChameleonWrapper({
+// ⚡ Bolt Performance Optimization:
+// Memoized ChameleonWrapper to prevent re-renders on high-frequency websocket ticks.
+// Note: Parent components must pass stable `children` references for this optimization to be effective.
+export const ChameleonWrapper = memo(function ChameleonWrapper({
   dominantColor,
   children,
 }: ChameleonWrapperProps) {
@@ -105,4 +108,4 @@ export function ChameleonWrapper({
   }, [dominantColor, colorMV, bgMV]);
 
   return <>{children}</>;
-}
+});

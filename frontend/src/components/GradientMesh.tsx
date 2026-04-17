@@ -9,6 +9,7 @@
  */
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 
 interface GradientMeshProps {
@@ -16,7 +17,10 @@ interface GradientMeshProps {
   opacity?: number;
 }
 
-export function GradientMesh({ opacity = 1 }: GradientMeshProps) {
+// ⚡ Bolt Performance Optimization:
+// Memoized GradientMesh to prevent expensive re-renders on high-frequency websocket ticks.
+// This is a static component and should only render once.
+export const GradientMesh = memo(function GradientMesh({ opacity = 1 }: GradientMeshProps) {
   return (
     <div
       aria-hidden
@@ -134,4 +138,4 @@ export function GradientMesh({ opacity = 1 }: GradientMeshProps) {
       />
     </div>
   );
-}
+});

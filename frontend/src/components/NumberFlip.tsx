@@ -9,6 +9,7 @@
  */
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 
 interface NumberFlipProps {
@@ -19,7 +20,9 @@ interface NumberFlipProps {
   subStyle?: React.CSSProperties;
 }
 
-export function NumberFlip({
+// ⚡ Bolt Performance Optimization:
+// Memoized NumberFlip to prevent re-renders on high-frequency websocket ticks.
+export const NumberFlip = memo(function NumberFlip({
   value,
   sub,
   className = "",
@@ -66,4 +69,4 @@ export function NumberFlip({
       )}
     </div>
   );
-}
+});
