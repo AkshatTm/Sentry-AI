@@ -13,7 +13,7 @@
 "use client";
 
 import { useRef, useState, useCallback, memo } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { motion, useSpring } from "framer-motion";
 
 interface TiltCardProps {
   children: React.ReactNode;
