@@ -410,13 +410,17 @@ const SecurityTopBar = memo(function SecurityTopBar({
           />
         </div>
 
-        {/* Sign Out — icon-only by default, text slides in on hover */}
+        {/* Sign Out — icon-only by default, text slides in on hover/focus */}
         <motion.button
+          type="button"
+          aria-label="Sign out"
           onClick={onLogout}
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
+          onFocus={() => setShowLogoutText(true)}
+          onBlur={() => setShowLogoutText(false)}
           title="Sign Out"
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200"
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none"
           whileHover={{
             backgroundColor: "rgba(244,63,94,0.10)",
             borderColor: "rgba(244,63,94,0.3)",
@@ -556,6 +560,9 @@ const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected
           {(["system", "network"] as const).map((tab) => (
             <button
               key={tab}
+              type="button"
+              aria-label={`View ${tab} logs`}
+              className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
               onClick={() => setActiveTab(tab)}
               style={{
                 background: activeTab === tab ? "rgba(255,255,255,0.06)" : "transparent",
