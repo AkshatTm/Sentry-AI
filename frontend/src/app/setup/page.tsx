@@ -209,6 +209,7 @@ function ConnectedCard({
 
       {/* Continue CTA */}
       <motion.button
+        type="button"
         onClick={onContinue}
         whileHover={{ scale: 1.012 }}
         whileTap={{ scale: 0.988 }}
@@ -230,6 +231,8 @@ function ConnectedCard({
 
       {/* Use a different device */}
       <button
+        type="button"
+        aria-label="Use a different device"
         onClick={onUseDifferent}
         style={{
           color: "var(--color-muted)",
@@ -283,6 +286,7 @@ function ScanUI({
 
       {/* Scan button — gradient border during scanning */}
       <motion.button
+        type="button"
         onClick={onScan}
         disabled={isPairing}
         whileHover={!isPairing ? { scale: 1.01 } : {}}
@@ -328,6 +332,8 @@ function ScanUI({
               return (
                 <motion.button
                   key={dev.address}
+                  type="button"
+                  aria-label={`Connect to ${dev.name}`}
                   onClick={() => onPair(dev.address, dev.name, dev.type)}
                   disabled={isPairing}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}

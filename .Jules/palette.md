@@ -1,0 +1,3 @@
+## 2024-05-17 - Missing explicit types and aria labels on custom UI buttons
+**Learning:** Found several decorative or interactive elements utilizing generic HTML `<button>` or `motion.button` tags that were missing an explicit `type="button"` and accessible `aria-label`s, especially on custom list-mapping items and icon-only tools. These buttons can cause unintended form submissions or be unreadable to screen readers when they don't have text.
+**Action:** Ensure all interactive components map proper `aria-label` descriptions (even dynamic ones) and explicit `type="button"` values to avoid form side effects and poor a11y.
