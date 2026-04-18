@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Adding ARIA Labels to Interactive UI Elements
+**Learning:** Icon-only buttons and interactive lists, while visually appealing, often lack context for screen readers. Explicit `aria-label`s are necessary for these elements to improve keyboard and screen reader accessibility, even if they have descriptive titles or surrounding text. Adding them to Framer Motion `motion.button` components is straightforward and highly impactful.
+**Action:** Always verify that interactive elements, especially those utilizing icons or complex inline mappings, possess clear, descriptive `aria-label` attributes. Add `aria-label` to custom components and standard buttons as a default practice.

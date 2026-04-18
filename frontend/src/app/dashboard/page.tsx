@@ -416,6 +416,7 @@ const SecurityTopBar = memo(function SecurityTopBar({
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
           title="Sign Out"
+          aria-label="Sign Out"
           className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200"
           whileHover={{
             backgroundColor: "rgba(244,63,94,0.10)",
@@ -557,6 +558,7 @@ const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
+              aria-label={`View ${tab} log`}
               style={{
                 background: activeTab === tab ? "rgba(255,255,255,0.06)" : "transparent",
                 border: "none",
