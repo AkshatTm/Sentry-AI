@@ -412,6 +412,8 @@ const SecurityTopBar = memo(function SecurityTopBar({
 
         {/* Sign Out — icon-only by default, text slides in on hover */}
         <motion.button
+          type="button"
+          aria-label="Sign Out"
           onClick={onLogout}
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
@@ -555,6 +557,8 @@ const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected
         <div className="ml-3 flex items-center gap-1">
           {(["system", "network"] as const).map((tab) => (
             <button
+              type="button"
+              aria-label={`Switch to ${tab} tab`}
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
