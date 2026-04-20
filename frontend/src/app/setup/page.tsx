@@ -231,6 +231,8 @@ function ConnectedCard({
       {/* Use a different device */}
       <button
         onClick={onUseDifferent}
+        aria-label="Use a different device"
+        type="button"
         style={{
           color: "var(--color-muted)",
           background: "none",
@@ -330,6 +332,8 @@ function ScanUI({
                   key={dev.address}
                   onClick={() => onPair(dev.address, dev.name, dev.type)}
                   disabled={isPairing}
+                  aria-label={`Pair with ${dev.name}`}
+                  type="button"
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}
                   className="w-full flex items-center justify-between px-4 py-3 text-left"
                   style={{
