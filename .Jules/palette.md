@@ -1,0 +1,3 @@
+## 2023-10-27 - Custom Tooltips Lack Focus Handlers
+**Learning:** Custom interactive components (like `SensorDot` and hoverable `motion.button` elements) often implement visual tooltips using only `onMouseEnter` and `onMouseLeave`, meaning they are entirely inaccessible to keyboard users unless explicitly corrected.
+**Action:** When auditing or implementing animated tooltips or revealed helper text on custom interactive elements, always verify that `onFocus` and `onBlur` handlers are paired with the mouse handlers, and ensure the wrapper has `tabIndex={0}`, an appropriate `role` (like `status`), and `aria-label`.

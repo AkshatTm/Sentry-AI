@@ -258,9 +258,14 @@ function SensorDot({
   const [showTip, setShowTip] = useState(false);
   return (
     <div
-      className="relative flex items-center"
+      className="relative flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
       onMouseEnter={() => setShowTip(true)}
       onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="status"
+      aria-label={tooltip}
     >
       <Icon size={iconSize} style={{ color }} />
       <AnimatePresence>
@@ -415,8 +420,11 @@ const SecurityTopBar = memo(function SecurityTopBar({
           onClick={onLogout}
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
+          onFocus={() => setShowLogoutText(true)}
+          onBlur={() => setShowLogoutText(false)}
           title="Sign Out"
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200"
+          aria-label="Sign Out"
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           whileHover={{
             backgroundColor: "rgba(244,63,94,0.10)",
             borderColor: "rgba(244,63,94,0.3)",
@@ -556,6 +564,8 @@ const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected
           {(["system", "network"] as const).map((tab) => (
             <button
               key={tab}
+              type="button"
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setActiveTab(tab)}
               style={{
                 background: activeTab === tab ? "rgba(255,255,255,0.06)" : "transparent",
