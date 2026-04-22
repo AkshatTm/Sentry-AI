@@ -230,6 +230,8 @@ function ConnectedCard({
 
       {/* Use a different device */}
       <button
+        type="button"
+        aria-label="Use a different device"
         onClick={onUseDifferent}
         style={{
           color: "var(--color-muted)",

@@ -1,0 +1,3 @@
+## 2024-04-22 - Missing keyboard accessibility and roles on custom interactive elements
+**Learning:** Found custom UI elements acting as interactive tooltips (e.g., `SensorDot` in `frontend/src/app/dashboard/page.tsx`) and custom tab controls that lack keyboard accessibility (`tabIndex`), focus event handlers, ARIA roles, and ARIA labels. The `onMouseEnter` and `onMouseLeave` are used without `onFocus` and `onBlur`, making them inaccessible to keyboard users.
+**Action:** Always add `tabIndex={0}`, `onFocus`, `onBlur`, `role`, and `aria-label` to interactive elements that reveal tooltips or act as controls to ensure full accessibility.
