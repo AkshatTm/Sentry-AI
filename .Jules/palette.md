@@ -1,0 +1,3 @@
+## 2024-04-24 - Interactive Elements Requiring Hover & Focus
+**Learning:** When implementing animated tooltips or revealed helper text on custom interactive elements (like `SensorDot` or `motion.button`), coupling `onMouseEnter` and `onMouseLeave` is insufficient for keyboard users. Furthermore, giving these custom wrappers interactive roles like `role="status"` instead of `role="button"` breaks semantic meaning when focusable.
+**Action:** Pair `onFocus` and `onBlur` handlers with mouse events, provide `tabIndex={0}`, an interactive `role` (e.g., `button`), and an `aria-label` to ensure keyboard accessibility. Also ensure generic `<button>` elements have explicit `type="button"` attributes to prevent accidental form submissions.

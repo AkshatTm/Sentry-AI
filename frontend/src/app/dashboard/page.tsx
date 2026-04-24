@@ -261,6 +261,11 @@ function SensorDot({
       className="relative flex items-center"
       onMouseEnter={() => setShowTip(true)}
       onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="button"
+      aria-label={tooltip}
     >
       <Icon size={iconSize} style={{ color }} />
       <AnimatePresence>
@@ -412,9 +417,13 @@ const SecurityTopBar = memo(function SecurityTopBar({
 
         {/* Sign Out — icon-only by default, text slides in on hover */}
         <motion.button
+          type="button"
+          aria-label="Sign Out"
           onClick={onLogout}
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
+          onFocus={() => setShowLogoutText(true)}
+          onBlur={() => setShowLogoutText(false)}
           title="Sign Out"
           className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200"
           whileHover={{
