@@ -333,7 +333,6 @@ function ScanUI({
                 <motion.button
                   key={dev.address}
                   type="button"
-                  aria-label={`Connect to ${dev.name}`}
                   onClick={() => onPair(dev.address, dev.name, dev.type)}
                   disabled={isPairing}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}

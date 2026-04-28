@@ -261,6 +261,11 @@ function SensorDot({
       className="relative flex items-center"
       onMouseEnter={() => setShowTip(true)}
       onMouseLeave={() => setShowTip(false)}
+      onFocus={() => setShowTip(true)}
+      onBlur={() => setShowTip(false)}
+      tabIndex={0}
+      role="button"
+      aria-label={tooltip}
     >
       <Icon size={iconSize} style={{ color }} />
       <AnimatePresence>
@@ -412,9 +417,13 @@ const SecurityTopBar = memo(function SecurityTopBar({
 
         {/* Sign Out — icon-only by default, text slides in on hover */}
         <motion.button
+          type="button"
+          aria-label="Sign Out"
           onClick={onLogout}
           onMouseEnter={() => setShowLogoutText(true)}
           onMouseLeave={() => setShowLogoutText(false)}
+          onFocus={() => setShowLogoutText(true)}
+          onBlur={() => setShowLogoutText(false)}
           title="Sign Out"
           aria-label="Sign Out"
           className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all duration-200"
@@ -552,7 +561,7 @@ const TerminalPanel = memo(function TerminalPanel({ isConnected }: { isConnected
           <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-success)", opacity: 0.8 }} />
         </div>
 
-        {/* Decorative tabs */}
+        {/* Log filter tabs */}
         <div className="ml-3 flex items-center gap-1">
           {(["system", "network"] as const).map((tab) => (
             <button
